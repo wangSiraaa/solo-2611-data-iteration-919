@@ -159,6 +159,317 @@
       "op": "register_sale",
       "quote": "$q_added",
       "sale_id": "S1"
+    },
+    {
+      "coupons": [
+        {
+          "D": 10,
+          "coupon_id": "AB",
+          "requires": {
+            "A": 1,
+            "B": 1
+          }
+        }
+      ],
+      "op": "publish_snapshot",
+      "products": [
+        {
+          "price": 10,
+          "sku": "A"
+        },
+        {
+          "price": 10,
+          "sku": "B"
+        },
+        {
+          "price": 10,
+          "sku": "C"
+        }
+      ],
+      "snapshot_id": "cmp-jia-old"
+    },
+    {
+      "coupons": [
+        {
+          "D": 8,
+          "coupon_id": "B8",
+          "requires": {
+            "B": 1
+          }
+        }
+      ],
+      "op": "publish_snapshot",
+      "products": [
+        {
+          "price": 10,
+          "sku": "A"
+        },
+        {
+          "price": 10,
+          "sku": "B"
+        },
+        {
+          "price": 10,
+          "sku": "C"
+        }
+      ],
+      "snapshot_id": "cmp-jia-new"
+    },
+    {
+      "coupons": [
+        {
+          "D": 7,
+          "coupon_id": "VIPA",
+          "requires": {
+            "A": 1
+          }
+        }
+      ],
+      "op": "publish_snapshot",
+      "products": [
+        {
+          "price": 10,
+          "sku": "A"
+        },
+        {
+          "price": 10,
+          "sku": "B"
+        },
+        {
+          "price": 10,
+          "sku": "C"
+        }
+      ],
+      "snapshot_id": "cmp-yi-old"
+    },
+    {
+      "coupons": [
+        {
+          "D": 5,
+          "coupon_id": "VIPA",
+          "requires": {
+            "A": 1
+          }
+        },
+        {
+          "D": 2,
+          "coupon_id": "C2",
+          "requires": {
+            "C": 1
+          }
+        }
+      ],
+      "op": "publish_snapshot",
+      "products": [
+        {
+          "price": 10,
+          "sku": "A"
+        },
+        {
+          "price": 10,
+          "sku": "B"
+        },
+        {
+          "price": 10,
+          "sku": "C"
+        }
+      ],
+      "snapshot_id": "cmp-yi-new"
+    },
+    {
+      "coupons": [
+        {
+          "D": 6,
+          "coupon_id": "B6",
+          "requires": {
+            "B": 1
+          }
+        }
+      ],
+      "op": "publish_snapshot",
+      "products": [
+        {
+          "price": 10,
+          "sku": "A"
+        },
+        {
+          "price": 10,
+          "sku": "B"
+        },
+        {
+          "price": 10,
+          "sku": "C"
+        }
+      ],
+      "snapshot_id": "cmp-bing-old"
+    },
+    {
+      "coupons": [
+        {
+          "D": 3,
+          "coupon_id": "B3",
+          "requires": {
+            "B": 1
+          }
+        }
+      ],
+      "op": "publish_snapshot",
+      "products": [
+        {
+          "price": 10,
+          "sku": "A"
+        },
+        {
+          "price": 10,
+          "sku": "B"
+        },
+        {
+          "price": 10,
+          "sku": "C"
+        }
+      ],
+      "snapshot_id": "cmp-bing-new"
+    },
+    {
+      "basket_id": "K",
+      "items": [
+        {
+          "price": 10,
+          "sku": "A",
+          "unit_id": "a"
+        },
+        {
+          "price": 10,
+          "sku": "B",
+          "unit_id": "b"
+        }
+      ],
+      "op": "register_basket"
+    },
+    {
+      "basket_id": "L",
+      "items": [
+        {
+          "price": 10,
+          "sku": "A",
+          "unit_id": "a"
+        },
+        {
+          "price": 10,
+          "sku": "C",
+          "unit_id": "c"
+        }
+      ],
+      "op": "register_basket"
+    },
+    {
+      "basket_id": "M",
+      "items": [
+        {
+          "price": 10,
+          "sku": "B",
+          "unit_id": "b"
+        }
+      ],
+      "op": "register_basket"
+    },
+    {
+      "allowed_baskets": [
+        "K"
+      ],
+      "assertions": [
+        {
+          "kind": "UNIT_PAID_UNCHANGED",
+          "unit_id": "a"
+        }
+      ],
+      "new_snapshot": "cmp-jia-new",
+      "old_snapshot": "cmp-jia-old",
+      "op": "register_statement",
+      "statement_id": "S1",
+      "vendor": "甲",
+      "weight": 6
+    },
+    {
+      "allowed_baskets": [
+        "K"
+      ],
+      "assertions": [
+        {
+          "kind": "TOTAL_UNCHANGED"
+        }
+      ],
+      "new_snapshot": "cmp-jia-new",
+      "old_snapshot": "cmp-jia-old",
+      "op": "register_statement",
+      "statement_id": "S2",
+      "vendor": "甲",
+      "weight": 4
+    },
+    {
+      "allowed_baskets": [
+        "L"
+      ],
+      "assertions": [
+        {
+          "kind": "UNIT_PAID_UNCHANGED",
+          "unit_id": "a"
+        }
+      ],
+      "new_snapshot": "cmp-yi-new",
+      "old_snapshot": "cmp-yi-old",
+      "op": "register_statement",
+      "statement_id": "S3",
+      "vendor": "乙",
+      "weight": 8
+    },
+    {
+      "allowed_baskets": [
+        "M"
+      ],
+      "assertions": [
+        {
+          "kind": "UNIT_PAID_DECREASES",
+          "unit_id": "b"
+        }
+      ],
+      "new_snapshot": "cmp-bing-new",
+      "old_snapshot": "cmp-bing-old",
+      "op": "register_statement",
+      "statement_id": "S4",
+      "vendor": "丙",
+      "weight": 5
+    },
+    {
+      "basket_id": "L",
+      "new_snapshot": "cmp-yi-new",
+      "old_snapshot": "cmp-yi-old",
+      "op": "compare_basket"
+    },
+    {
+      "op": "find_counterexamples",
+      "statement_id": "S3"
+    },
+    {
+      "booths": 2,
+      "name": "exhibit_plan",
+      "op": "plan_exhibition"
+    },
+    {
+      "basket_id": "L",
+      "op": "collect_booking",
+      "plan_id": "$exhibit_plan.plan_id"
+    },
+    {
+      "op": "withdraw_sample",
+      "unit_id": "a"
+    },
+    {
+      "op": "reopen_statement",
+      "statement_id": "S3"
+    },
+    {
+      "op": "exhibition_status"
     }
   ]
 }

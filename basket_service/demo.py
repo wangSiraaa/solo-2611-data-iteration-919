@@ -14,6 +14,7 @@ compute the expected answer.
 
 from __future__ import annotations
 
+import itertools
 import json
 import os
 import threading
@@ -509,6 +510,296 @@ def run_demo(db_path: str, out_path: str, plan_path: str) -> Dict[str, Any]:
     })
     del final
 
+    # ------------------------------------------------------------------
+    # 8. Comparison catalog and exhibition lending plan (对照目录 / 布展借单).
+    #
+    # The 甲/乙/丙 worked example is built entirely from quotable items and
+    # coupons — nothing is hand-recorded as "proved".  乙's two snapshots
+    # give basket L the same total while unit a's paid amount moves 3 -> 5,
+    # so a total-only check would miss the counterexample.
+    # ------------------------------------------------------------------
+    svc = open_service(db_path)
+    cat_products = [{"sku": s, "price": 10} for s in ("A", "B", "C")]
+    svc.publish_snapshot(cat_products, [{"coupon_id": "AB", "D": 10, "requires": {"A": 1, "B": 1}}], snapshot_id="cmp-jia-old")
+    svc.publish_snapshot(cat_products, [{"coupon_id": "B8", "D": 8, "requires": {"B": 1}}], snapshot_id="cmp-jia-new")
+    svc.publish_snapshot(cat_products, [{"coupon_id": "VIPA", "D": 7, "requires": {"A": 1}}], snapshot_id="cmp-yi-old")
+    svc.publish_snapshot(
+        cat_products,
+        [{"coupon_id": "VIPA", "D": 5, "requires": {"A": 1}}, {"coupon_id": "C2", "D": 2, "requires": {"C": 1}}],
+        snapshot_id="cmp-yi-new",
+    )
+    svc.publish_snapshot(cat_products, [{"coupon_id": "B6", "D": 6, "requires": {"B": 1}}], snapshot_id="cmp-bing-old")
+    svc.publish_snapshot(cat_products, [{"coupon_id": "B3", "D": 3, "requires": {"B": 1}}], snapshot_id="cmp-bing-new")
+    svc.register_basket("K", [{"unit_id": "a", "sku": "A", "price": 10}, {"unit_id": "b", "sku": "B", "price": 10}])
+    svc.register_basket("L", [{"unit_id": "a", "sku": "A", "price": 10}, {"unit_id": "c", "sku": "C", "price": 10}])
+    svc.register_basket("M", [{"unit_id": "b", "sku": "B", "price": 10}])
+    svc.register_statement(
+        "S1", vendor="甲", weight=6, old_snapshot="cmp-jia-old", new_snapshot="cmp-jia-new",
+        allowed_baskets=["K"], assertions=[{"kind": "UNIT_PAID_UNCHANGED", "unit_id": "a"}],
+    )
+    svc.register_statement(
+        "S2", vendor="甲", weight=4, old_snapshot="cmp-jia-old", new_snapshot="cmp-jia-new",
+        allowed_baskets=["K"], assertions=[{"kind": "TOTAL_UNCHANGED"}],
+    )
+    svc.register_statement(
+        "S3", vendor="乙", weight=8, old_snapshot="cmp-yi-old", new_snapshot="cmp-yi-new",
+        allowed_baskets=["L"], assertions=[{"kind": "UNIT_PAID_UNCHANGED", "unit_id": "a"}],
+    )
+    svc.register_statement(
+        "S4", vendor="丙", weight=5, old_snapshot="cmp-bing-old", new_snapshot="cmp-bing-new",
+        allowed_baskets=["M"], assertions=[{"kind": "UNIT_PAID_DECREASES", "unit_id": "b"}],
+    )
+
+    report_l = svc.compare_basket("L", "cmp-yi-old", "cmp-yi-new")
+    ce_s3 = svc.find_counterexamples("S3")
+    results["scenarios"]["comparison_catalog"] = {
+        "report_L": report_l,
+        "counterexamples_S3": ce_s3,
+    }
+    results["checks"].append({
+        "check": "catalog.same_total_different_allocation_detected",
+        "ok": (
+            report_l["total"] == {"old": 13, "new": 13, "changed": False}
+            and {u["unit_id"]: (u["paid_old"], u["paid_new"]) for u in report_l["units"]}["a"] == (3, 5)
+            and "SAME_TOTAL_DIFFERENT_ALLOCATION" in report_l["findings"]
+        ),
+        "expected": {"total_old": 13, "total_new": 13, "a_paid": [3, 5]},
+        "actual": {"total": report_l["total"], "units": report_l["units"], "findings": report_l["findings"]},
+    })
+    results["checks"].append({
+        "check": "catalog.counterexample_replayable_on_real_basket",
+        "ok": ce_s3["counterexample_baskets"] == ["L"]
+        and svc.get_quote(ce_s3["baskets"][0]["old_quote_request"])["total"] == 13
+        and ce_s3["baskets"][0]["failing_assertions"][0]["observed"] == {"paid_old": 3, "paid_new": 5},
+        "expected": ["L"],
+        "actual": ce_s3["counterexample_baskets"],
+    })
+
+    # A total-only assertion on the same basket finds nothing — this is why
+    # the catalog checks per-unit return liability, not just the basket total.
+    svc.register_statement(
+        "S3-total", vendor="乙", weight=0, old_snapshot="cmp-yi-old", new_snapshot="cmp-yi-new",
+        allowed_baskets=["L"], assertions=[{"kind": "TOTAL_UNCHANGED"}],
+    )
+    ce_total_only = svc.find_counterexamples("S3-total")
+    results["scenarios"]["comparison_catalog"]["total_only_check"] = ce_total_only
+    results["checks"].append({
+        "check": "catalog.total_only_check_misses_L",
+        "ok": ce_total_only["counterexample_baskets"] == [],
+        "expected": [],
+        "actual": ce_total_only["counterexample_baskets"],
+    })
+
+    # Exhibition lending plan: 2 booths -> 乙+丙 = 13; 1 booth -> 甲 = 10.
+    plan_two = svc.plan_exhibition(2)
+    plan_one = svc.plan_exhibition(1)
+    plan_two_again = svc.plan_exhibition(2)
+    results["scenarios"]["exhibition"] = {
+        "plan_two_booths": plan_two,
+        "plan_one_booth": plan_one,
+        "plan_two_booths_replanned": plan_two_again,
+    }
+    results["checks"].append({
+        "check": "exhibit.two_booths_weight_13",
+        "ok": plan_two["total_weight"] == 13
+        and [(b["basket_id"], b["vendor"]) for b in plan_two["bookings"]] == [("L", "乙"), ("M", "丙")],
+        "expected": {"weight": 13, "bookings": [["L", "乙"], ["M", "丙"]]},
+        "actual": {"weight": plan_two["total_weight"], "bookings": [[b["basket_id"], b["vendor"]] for b in plan_two["bookings"]]},
+    })
+    results["checks"].append({
+        "check": "exhibit.one_booth_weight_10",
+        "ok": plan_one["total_weight"] == 10
+        and [(b["basket_id"], b["vendor"]) for b in plan_one["bookings"]] == [("K", "甲")],
+        "expected": {"weight": 10, "bookings": [["K", "甲"]]},
+        "actual": {"weight": plan_one["total_weight"], "bookings": [[b["basket_id"], b["vendor"]] for b in plan_one["bookings"]]},
+    })
+
+    # Collect 乙's booking, then the library withdraws sample a: only the
+    # uncollected bookings are re-planned; 乙's exhibited statement stays.
+    collected_l = svc.collect_booking(plan_two_again["plan_id"], "L")
+    withdrawal = svc.withdraw_sample("a")
+    replanned = withdrawal["replanned_plan"]
+    results["scenarios"]["exhibition"]["collected_L"] = collected_l
+    results["scenarios"]["exhibition"]["withdrawal_a"] = withdrawal
+    results["checks"].append({
+        "check": "exhibit.withdrawal_replans_uncollected_only",
+        "ok": (
+            collected_l["exhibited"] == [{"statement_id": "S3", "weight": 8}]
+            and [b["basket_id"] for b in withdrawal["dropped_bookings"]] == ["M"]
+            and replanned["total_weight"] == 5
+            and [(b["basket_id"], b["vendor"]) for b in replanned["bookings"]] == [("M", "丙")]
+            and replanned["pending_statement_ids"] == ["S1", "S2", "S3-total"]
+            and svc.get_statement("S3")["status"] == "EXHIBITED"
+        ),
+        "expected": {"dropped": ["M"], "replanned_weight": 5, "bookings": [["M", "丙"]], "pending": ["S1", "S2", "S3-total"]},
+        "actual": {
+            "dropped": [b["basket_id"] for b in withdrawal["dropped_bookings"]],
+            "replanned_weight": replanned["total_weight"],
+            "bookings": [[b["basket_id"], b["vendor"]] for b in replanned["bookings"]],
+            "pending": replanned["pending_statement_ids"],
+        },
+    })
+
+    # Reopen the exhibited statement with its original quotes and return
+    # amounts; the ledger refunds exactly the archived per-unit amount.
+    reopened_s3 = svc.reopen_statement("S3")
+    svc.register_sale("exhibit-S3", quote=reopened_s3["old_quote"])
+    refund_a = svc.return_units("exhibit-ret-S3-a", "exhibit-S3", ["a"], {"a": "RESTOCK"})
+    results["scenarios"]["exhibition"]["reopened_S3"] = reopened_s3
+    results["scenarios"]["exhibition"]["ledger_refund_a"] = refund_a
+    results["checks"].append({
+        "check": "exhibit.reopen_returns_original_quotes_and_refunds",
+        "ok": reopened_s3["refunds"] == {"old": {"a": 3, "c": 10}, "new": {"a": 5, "c": 8}}
+        and reopened_s3["old_quote"]["total"] == 13,
+        "expected": {"old": {"a": 3, "c": 10}, "new": {"a": 5, "c": 8}},
+        "actual": reopened_s3["refunds"],
+    })
+    results["checks"].append({
+        "check": "exhibit.ledger_refund_matches_archived_amount",
+        "ok": refund_a["refund_total"] == reopened_s3["refunds"]["old"]["a"] == 3,
+        "expected": 3,
+        "actual": refund_a["refund_total"],
+    })
+
+    # 丁: the same coupon id moves to a different physical unit (同券号换了实物).
+    # Registered after the lending-plan flow so the extra weight-3 statement
+    # cannot tie-break the worked example's optimum.
+    svc.publish_snapshot(
+        [{"sku": "P", "price": 10}, {"sku": "Q", "price": 10}],
+        [{"coupon_id": "VIP", "D": 6, "requires": {"P": 1}}],
+        snapshot_id="cmp-ding-old",
+    )
+    svc.publish_snapshot(
+        [{"sku": "P", "price": 10}, {"sku": "Q", "price": 10}],
+        [{"coupon_id": "VIP", "D": 6, "requires": {"Q": 1}}],
+        snapshot_id="cmp-ding-new",
+    )
+    svc.register_basket("N", [{"unit_id": "p", "sku": "P", "price": 10}, {"unit_id": "q", "sku": "Q", "price": 10}])
+    svc.register_statement(
+        "S5", vendor="丁", weight=3, old_snapshot="cmp-ding-old", new_snapshot="cmp-ding-new",
+        allowed_baskets=["N"], assertions=[{"kind": "COUPON_SAME_UNITS", "coupon_id": "VIP"}],
+    )
+    report_n = svc.compare_basket("N", "cmp-ding-old", "cmp-ding-new")
+    ce_s5 = svc.find_counterexamples("S5")
+    results["scenarios"]["comparison_catalog"]["report_N"] = report_n
+    results["checks"].append({
+        "check": "catalog.coupon_retargeted_detected",
+        "ok": "COUPON_RETARGETED" in report_n["findings"] and ce_s5["counterexample_baskets"] == ["N"],
+        "expected": {"findings": "COUPON_RETARGETED", "counterexamples": ["N"]},
+        "actual": {"findings": report_n["findings"], "counterexamples": ce_s5["counterexample_baskets"]},
+    })
+
+    # ------------------------------------------------------------------
+    # 9. Scale: 20 display baskets, 16 statements, fully separate samples
+    #    but heavily overlapping proven-statement sets (separate database).
+    # ------------------------------------------------------------------
+    scale_path = str(Path(db_path).with_suffix(".scale.db"))
+    for suffix in ("", "-wal", "-shm"):
+        stale = Path(scale_path + suffix)
+        if stale.exists():
+            stale.unlink()
+    scale_svc = open_service(scale_path)
+    scale_products = [{"sku": f"SKU{i}", "price": 100} for i in range(8)]
+    scale_svc.publish_snapshot(
+        scale_products,
+        [{"coupon_id": f"old-{i}", "D": 40, "requires": {f"SKU{i}": 1}} for i in range(8)],
+        snapshot_id="scale-old",
+    )
+    scale_svc.publish_snapshot(
+        scale_products,
+        [{"coupon_id": f"new-{i}", "D": 25, "requires": {f"SKU{i}": 1}} for i in range(8)],
+        snapshot_id="scale-new",
+    )
+    for i in range(20):
+        scale_svc.register_basket(
+            f"B{i}",
+            [{"unit_id": f"u{8 * i + j}", "sku": f"SKU{j}", "price": 100} for j in range(8)],
+        )
+    scale_weights = [9, 8, 7, 6, 5, 4, 3, 2, 6, 6, 5, 5, 4, 4, 5, 7]
+    all_baskets = [f"B{i}" for i in range(20)]
+    scale_assertions = []
+    for k in range(16):
+        if k < 8:
+            assertions = [{"kind": "UNIT_PAID_UNCHANGED", "unit_id": f"u{8 * k}"}]
+        elif k < 14:
+            assertions = [{"kind": "TOTAL_UNCHANGED"}]
+        elif k == 14:
+            assertions = [{"kind": "TOTAL_NOT_ABOVE", "amount": 500}]
+        else:
+            assertions = [{"kind": "UNIT_PAID_NOT_ABOVE", "unit_id": "u11", "amount": 70}]
+        scale_assertions.append(assertions)
+        scale_svc.register_statement(
+            f"s{k}", vendor=f"V{k // 4}", weight=scale_weights[k],
+            old_snapshot="scale-old", new_snapshot="scale-new",
+            allowed_baskets=all_baskets, assertions=assertions,
+        )
+    scale_plan = scale_svc.plan_exhibition(3)
+
+    # Independent expectation: re-quote every basket directly, evaluate the
+    # assertions inline here (not via the catalog), then enumerate all
+    # booking sets brute-force (not via the production search).
+    def _inline_violated(kind_assertion, old_q, new_q):
+        kind = kind_assertion["kind"]
+        old_paid = {e["unit_id"]: e["paid"] for e in old_q["allocation"]}
+        new_paid = {e["unit_id"]: e["paid"] for e in new_q["allocation"]}
+        if kind == "UNIT_PAID_UNCHANGED":
+            unit = kind_assertion["unit_id"]
+            return unit in old_paid and old_paid[unit] != new_paid[unit]
+        if kind == "UNIT_PAID_NOT_ABOVE":
+            unit = kind_assertion["unit_id"]
+            return unit in new_paid and new_paid[unit] > kind_assertion["amount"]
+        if kind == "TOTAL_UNCHANGED":
+            return old_q["total"] != new_q["total"]
+        if kind == "TOTAL_NOT_ABOVE":
+            return new_q["total"] > kind_assertion["amount"]
+        raise AssertionError(kind)
+
+    independent_options: Dict[str, Dict[str, int]] = {}
+    for k in range(16):
+        statement = scale_svc.get_statement(f"s{k}")
+        for basket_id in all_baskets:
+            items = scale_svc.get_basket(basket_id)["items"]
+            old_q = scale_svc.quote(items, [], f"ind:{basket_id}:old", "scale-old")
+            new_q = scale_svc.quote(items, [], f"ind:{basket_id}:new", "scale-new")
+            if any(_inline_violated(a, old_q, new_q) for a in scale_assertions[k]):
+                independent_options.setdefault(basket_id, {}).setdefault(statement["vendor"], 0)
+                independent_options[basket_id][statement["vendor"]] |= 1 << k
+    candidates = [(b, v) for b in independent_options for v in independent_options[b]]
+    independent_best = 0
+    for size in range(0, 4):
+        for combo in itertools.combinations(candidates, size):
+            used_samples = set()
+            covered = 0
+            feasible = True
+            for basket_id, vendor in combo:
+                samples = set(scale_svc.get_basket(basket_id)["samples"])
+                if used_samples & samples:
+                    feasible = False
+                    break
+                used_samples |= samples
+                covered |= independent_options[basket_id][vendor]
+            if feasible:
+                independent_best = max(
+                    independent_best,
+                    sum(scale_weights[k] for k in range(16) if covered >> k & 1),
+                )
+    results["scenarios"]["exhibition_scale"] = {
+        "database": scale_path,
+        "baskets": 20,
+        "statements": 16,
+        "booths": 3,
+        "plan": scale_plan,
+        "independent_brute_force_weight": independent_best,
+    }
+    results["checks"].append({
+        "check": "exhibit.scale_matches_independent_brute_force",
+        "ok": scale_plan["total_weight"] == independent_best == 51
+        and sum(scale_weights[k] for k in range(16) if f"s{k}" in scale_plan["covered_statement_ids"]) == scale_plan["total_weight"],
+        "expected": 51,
+        "actual": {"plan": scale_plan["total_weight"], "brute_force": independent_best},
+    })
+    del scale_svc
+
     results["summary"] = {
         "checks": len(results["checks"]),
         "passed": sum(1 for c in results["checks"] if c["ok"]),
@@ -526,6 +817,27 @@ def run_demo(db_path: str, out_path: str, plan_path: str) -> Dict[str, Any]:
             {"op": "return", "request_id": "r1", "sale_id": "S1", "unit_ids": ["b"], "grade": {"b": "RESTOCK"}},
             {"op": "return", "request_id": "ret-added-b", "sale_id": "S2", "unit_ids": ["b"], "grade": {"b": "SCRAP"}},
             {"op": "register_sale", "sale_id": "S1", "quote": "$q_added", "expect_error": "SALE_CONFLICT"},
+            # Comparison catalog / exhibition lending plan (对照目录 / 布展借单).
+            {"op": "publish_snapshot", "products": [{"sku": "A", "price": 10}, {"sku": "B", "price": 10}, {"sku": "C", "price": 10}], "coupons": [{"coupon_id": "AB", "D": 10, "requires": {"A": 1, "B": 1}}], "snapshot_id": "cmp-jia-old"},
+            {"op": "publish_snapshot", "products": [{"sku": "A", "price": 10}, {"sku": "B", "price": 10}, {"sku": "C", "price": 10}], "coupons": [{"coupon_id": "B8", "D": 8, "requires": {"B": 1}}], "snapshot_id": "cmp-jia-new"},
+            {"op": "publish_snapshot", "products": [{"sku": "A", "price": 10}, {"sku": "B", "price": 10}, {"sku": "C", "price": 10}], "coupons": [{"coupon_id": "VIPA", "D": 7, "requires": {"A": 1}}], "snapshot_id": "cmp-yi-old"},
+            {"op": "publish_snapshot", "products": [{"sku": "A", "price": 10}, {"sku": "B", "price": 10}, {"sku": "C", "price": 10}], "coupons": [{"coupon_id": "VIPA", "D": 5, "requires": {"A": 1}}, {"coupon_id": "C2", "D": 2, "requires": {"C": 1}}], "snapshot_id": "cmp-yi-new"},
+            {"op": "publish_snapshot", "products": [{"sku": "A", "price": 10}, {"sku": "B", "price": 10}, {"sku": "C", "price": 10}], "coupons": [{"coupon_id": "B6", "D": 6, "requires": {"B": 1}}], "snapshot_id": "cmp-bing-old"},
+            {"op": "publish_snapshot", "products": [{"sku": "A", "price": 10}, {"sku": "B", "price": 10}, {"sku": "C", "price": 10}], "coupons": [{"coupon_id": "B3", "D": 3, "requires": {"B": 1}}], "snapshot_id": "cmp-bing-new"},
+            {"op": "register_basket", "basket_id": "K", "items": [{"unit_id": "a", "sku": "A", "price": 10}, {"unit_id": "b", "sku": "B", "price": 10}]},
+            {"op": "register_basket", "basket_id": "L", "items": [{"unit_id": "a", "sku": "A", "price": 10}, {"unit_id": "c", "sku": "C", "price": 10}]},
+            {"op": "register_basket", "basket_id": "M", "items": [{"unit_id": "b", "sku": "B", "price": 10}]},
+            {"op": "register_statement", "statement_id": "S1", "vendor": "甲", "weight": 6, "old_snapshot": "cmp-jia-old", "new_snapshot": "cmp-jia-new", "allowed_baskets": ["K"], "assertions": [{"kind": "UNIT_PAID_UNCHANGED", "unit_id": "a"}]},
+            {"op": "register_statement", "statement_id": "S2", "vendor": "甲", "weight": 4, "old_snapshot": "cmp-jia-old", "new_snapshot": "cmp-jia-new", "allowed_baskets": ["K"], "assertions": [{"kind": "TOTAL_UNCHANGED"}]},
+            {"op": "register_statement", "statement_id": "S3", "vendor": "乙", "weight": 8, "old_snapshot": "cmp-yi-old", "new_snapshot": "cmp-yi-new", "allowed_baskets": ["L"], "assertions": [{"kind": "UNIT_PAID_UNCHANGED", "unit_id": "a"}]},
+            {"op": "register_statement", "statement_id": "S4", "vendor": "丙", "weight": 5, "old_snapshot": "cmp-bing-old", "new_snapshot": "cmp-bing-new", "allowed_baskets": ["M"], "assertions": [{"kind": "UNIT_PAID_DECREASES", "unit_id": "b"}]},
+            {"op": "compare_basket", "basket_id": "L", "old_snapshot": "cmp-yi-old", "new_snapshot": "cmp-yi-new"},
+            {"op": "find_counterexamples", "statement_id": "S3"},
+            {"name": "exhibit_plan", "op": "plan_exhibition", "booths": 2},
+            {"op": "collect_booking", "plan_id": "$exhibit_plan.plan_id", "basket_id": "L"},
+            {"op": "withdraw_sample", "unit_id": "a"},
+            {"op": "reopen_statement", "statement_id": "S3"},
+            {"op": "exhibition_status"},
         ],
     }
 

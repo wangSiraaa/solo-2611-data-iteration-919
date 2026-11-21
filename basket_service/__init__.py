@@ -15,8 +15,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional
 
+from .catalog import ComparisonCatalog
 from .db import Database
 from .errors import BasketError
+from .exhibit import ExhibitionPlanner
 from .ledger import AfterSalesLedger
 from .quote_service import QuoteService
 
@@ -28,6 +30,8 @@ class Service:
         self.db = Database(path, busy_timeout_ms=busy_timeout_ms)
         self.quotes = QuoteService(self.db)
         self.ledger = AfterSalesLedger(self.db)
+        self.catalog = ComparisonCatalog(self.db, self.quotes)
+        self.exhibit = ExhibitionPlanner(self.db, self.quotes, self.catalog)
 
     # quote surface -------------------------------------------------------
     def publish_snapshot(self, products=None, coupons=None, *, snapshot_id=None) -> str:
@@ -66,6 +70,53 @@ class Service:
 
     def audit_sales(self):
         return self.ledger.audit_sales()
+
+    # comparison catalog surface (对照目录) ---------------------------------
+    def register_basket(self, basket_id: str, items):
+        return self.catalog.register_basket(basket_id, items)
+
+    def get_basket(self, basket_id: str):
+        return self.catalog.get_basket(basket_id)
+
+    def list_baskets(self):
+        return self.catalog.list_baskets()
+
+    def catalog_samples(self):
+        return self.catalog.samples()
+
+    def register_statement(self, statement_id: str, **kwargs):
+        return self.catalog.register_statement(statement_id, **kwargs)
+
+    def get_statement(self, statement_id: str):
+        return self.catalog.get_statement(statement_id)
+
+    def list_statements(self):
+        return self.catalog.list_statements()
+
+    def compare_basket(self, basket_id: str, old_snapshot: str, new_snapshot: str):
+        return self.catalog.compare_basket(basket_id, old_snapshot, new_snapshot)
+
+    def find_counterexamples(self, statement_id: str):
+        return self.catalog.find_counterexamples(statement_id)
+
+    # exhibition planning surface (布展借单) --------------------------------
+    def plan_exhibition(self, booths: int):
+        return self.exhibit.plan_exhibition(booths)
+
+    def get_plan(self, plan_id: str):
+        return self.exhibit.get_plan(plan_id)
+
+    def collect_booking(self, plan_id: str, basket_id: str):
+        return self.exhibit.collect_booking(plan_id, basket_id)
+
+    def withdraw_sample(self, unit_id: str):
+        return self.exhibit.withdraw_sample(unit_id)
+
+    def reopen_statement(self, statement_id: str):
+        return self.exhibit.reopen_statement(statement_id)
+
+    def exhibition_status(self):
+        return self.exhibit.status()
 
     # cross-cutting -------------------------------------------------------
     def run(self, plan):

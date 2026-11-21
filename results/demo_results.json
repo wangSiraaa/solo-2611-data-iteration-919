@@ -338,6 +338,220 @@
         "successes": 1
       },
       "ok": true
+    },
+    {
+      "actual": {
+        "findings": [
+          "ALLOCATION_CHANGED",
+          "SAME_TOTAL_DIFFERENT_ALLOCATION"
+        ],
+        "total": {
+          "changed": false,
+          "new": 13,
+          "old": 13
+        },
+        "units": [
+          {
+            "coupon_new": "VIPA",
+            "coupon_old": "VIPA",
+            "discount_new": 5,
+            "discount_old": 7,
+            "paid_changed": true,
+            "paid_new": 5,
+            "paid_old": 3,
+            "price": 10,
+            "sku": "A",
+            "unit_id": "a"
+          },
+          {
+            "coupon_new": "C2",
+            "coupon_old": null,
+            "discount_new": 2,
+            "discount_old": 0,
+            "paid_changed": true,
+            "paid_new": 8,
+            "paid_old": 10,
+            "price": 10,
+            "sku": "C",
+            "unit_id": "c"
+          }
+        ]
+      },
+      "check": "catalog.same_total_different_allocation_detected",
+      "expected": {
+        "a_paid": [
+          3,
+          5
+        ],
+        "total_new": 13,
+        "total_old": 13
+      },
+      "ok": true
+    },
+    {
+      "actual": [
+        "L"
+      ],
+      "check": "catalog.counterexample_replayable_on_real_basket",
+      "expected": [
+        "L"
+      ],
+      "ok": true
+    },
+    {
+      "actual": [],
+      "check": "catalog.total_only_check_misses_L",
+      "expected": [],
+      "ok": true
+    },
+    {
+      "actual": {
+        "bookings": [
+          [
+            "L",
+            "乙"
+          ],
+          [
+            "M",
+            "丙"
+          ]
+        ],
+        "weight": 13
+      },
+      "check": "exhibit.two_booths_weight_13",
+      "expected": {
+        "bookings": [
+          [
+            "L",
+            "乙"
+          ],
+          [
+            "M",
+            "丙"
+          ]
+        ],
+        "weight": 13
+      },
+      "ok": true
+    },
+    {
+      "actual": {
+        "bookings": [
+          [
+            "K",
+            "甲"
+          ]
+        ],
+        "weight": 10
+      },
+      "check": "exhibit.one_booth_weight_10",
+      "expected": {
+        "bookings": [
+          [
+            "K",
+            "甲"
+          ]
+        ],
+        "weight": 10
+      },
+      "ok": true
+    },
+    {
+      "actual": {
+        "bookings": [
+          [
+            "M",
+            "丙"
+          ]
+        ],
+        "dropped": [
+          "M"
+        ],
+        "pending": [
+          "S1",
+          "S2",
+          "S3-total"
+        ],
+        "replanned_weight": 5
+      },
+      "check": "exhibit.withdrawal_replans_uncollected_only",
+      "expected": {
+        "bookings": [
+          [
+            "M",
+            "丙"
+          ]
+        ],
+        "dropped": [
+          "M"
+        ],
+        "pending": [
+          "S1",
+          "S2",
+          "S3-total"
+        ],
+        "replanned_weight": 5
+      },
+      "ok": true
+    },
+    {
+      "actual": {
+        "new": {
+          "a": 5,
+          "c": 8
+        },
+        "old": {
+          "a": 3,
+          "c": 10
+        }
+      },
+      "check": "exhibit.reopen_returns_original_quotes_and_refunds",
+      "expected": {
+        "new": {
+          "a": 5,
+          "c": 8
+        },
+        "old": {
+          "a": 3,
+          "c": 10
+        }
+      },
+      "ok": true
+    },
+    {
+      "actual": 3,
+      "check": "exhibit.ledger_refund_matches_archived_amount",
+      "expected": 3,
+      "ok": true
+    },
+    {
+      "actual": {
+        "counterexamples": [
+          "N"
+        ],
+        "findings": [
+          "ALLOCATION_CHANGED",
+          "SAME_TOTAL_DIFFERENT_ALLOCATION",
+          "COUPON_RETARGETED"
+        ]
+      },
+      "check": "catalog.coupon_retargeted_detected",
+      "expected": {
+        "counterexamples": [
+          "N"
+        ],
+        "findings": "COUPON_RETARGETED"
+      },
+      "ok": true
+    },
+    {
+      "actual": {
+        "brute_force": 51,
+        "plan": 51
+      },
+      "check": "exhibit.scale_matches_independent_brute_force",
+      "expected": 51,
+      "ok": true
     }
   ],
   "database": "/workspace/data/demo.db",
@@ -502,6 +716,317 @@
         "op": "register_sale",
         "quote": "$q_added",
         "sale_id": "S1"
+      },
+      {
+        "coupons": [
+          {
+            "D": 10,
+            "coupon_id": "AB",
+            "requires": {
+              "A": 1,
+              "B": 1
+            }
+          }
+        ],
+        "op": "publish_snapshot",
+        "products": [
+          {
+            "price": 10,
+            "sku": "A"
+          },
+          {
+            "price": 10,
+            "sku": "B"
+          },
+          {
+            "price": 10,
+            "sku": "C"
+          }
+        ],
+        "snapshot_id": "cmp-jia-old"
+      },
+      {
+        "coupons": [
+          {
+            "D": 8,
+            "coupon_id": "B8",
+            "requires": {
+              "B": 1
+            }
+          }
+        ],
+        "op": "publish_snapshot",
+        "products": [
+          {
+            "price": 10,
+            "sku": "A"
+          },
+          {
+            "price": 10,
+            "sku": "B"
+          },
+          {
+            "price": 10,
+            "sku": "C"
+          }
+        ],
+        "snapshot_id": "cmp-jia-new"
+      },
+      {
+        "coupons": [
+          {
+            "D": 7,
+            "coupon_id": "VIPA",
+            "requires": {
+              "A": 1
+            }
+          }
+        ],
+        "op": "publish_snapshot",
+        "products": [
+          {
+            "price": 10,
+            "sku": "A"
+          },
+          {
+            "price": 10,
+            "sku": "B"
+          },
+          {
+            "price": 10,
+            "sku": "C"
+          }
+        ],
+        "snapshot_id": "cmp-yi-old"
+      },
+      {
+        "coupons": [
+          {
+            "D": 5,
+            "coupon_id": "VIPA",
+            "requires": {
+              "A": 1
+            }
+          },
+          {
+            "D": 2,
+            "coupon_id": "C2",
+            "requires": {
+              "C": 1
+            }
+          }
+        ],
+        "op": "publish_snapshot",
+        "products": [
+          {
+            "price": 10,
+            "sku": "A"
+          },
+          {
+            "price": 10,
+            "sku": "B"
+          },
+          {
+            "price": 10,
+            "sku": "C"
+          }
+        ],
+        "snapshot_id": "cmp-yi-new"
+      },
+      {
+        "coupons": [
+          {
+            "D": 6,
+            "coupon_id": "B6",
+            "requires": {
+              "B": 1
+            }
+          }
+        ],
+        "op": "publish_snapshot",
+        "products": [
+          {
+            "price": 10,
+            "sku": "A"
+          },
+          {
+            "price": 10,
+            "sku": "B"
+          },
+          {
+            "price": 10,
+            "sku": "C"
+          }
+        ],
+        "snapshot_id": "cmp-bing-old"
+      },
+      {
+        "coupons": [
+          {
+            "D": 3,
+            "coupon_id": "B3",
+            "requires": {
+              "B": 1
+            }
+          }
+        ],
+        "op": "publish_snapshot",
+        "products": [
+          {
+            "price": 10,
+            "sku": "A"
+          },
+          {
+            "price": 10,
+            "sku": "B"
+          },
+          {
+            "price": 10,
+            "sku": "C"
+          }
+        ],
+        "snapshot_id": "cmp-bing-new"
+      },
+      {
+        "basket_id": "K",
+        "items": [
+          {
+            "price": 10,
+            "sku": "A",
+            "unit_id": "a"
+          },
+          {
+            "price": 10,
+            "sku": "B",
+            "unit_id": "b"
+          }
+        ],
+        "op": "register_basket"
+      },
+      {
+        "basket_id": "L",
+        "items": [
+          {
+            "price": 10,
+            "sku": "A",
+            "unit_id": "a"
+          },
+          {
+            "price": 10,
+            "sku": "C",
+            "unit_id": "c"
+          }
+        ],
+        "op": "register_basket"
+      },
+      {
+        "basket_id": "M",
+        "items": [
+          {
+            "price": 10,
+            "sku": "B",
+            "unit_id": "b"
+          }
+        ],
+        "op": "register_basket"
+      },
+      {
+        "allowed_baskets": [
+          "K"
+        ],
+        "assertions": [
+          {
+            "kind": "UNIT_PAID_UNCHANGED",
+            "unit_id": "a"
+          }
+        ],
+        "new_snapshot": "cmp-jia-new",
+        "old_snapshot": "cmp-jia-old",
+        "op": "register_statement",
+        "statement_id": "S1",
+        "vendor": "甲",
+        "weight": 6
+      },
+      {
+        "allowed_baskets": [
+          "K"
+        ],
+        "assertions": [
+          {
+            "kind": "TOTAL_UNCHANGED"
+          }
+        ],
+        "new_snapshot": "cmp-jia-new",
+        "old_snapshot": "cmp-jia-old",
+        "op": "register_statement",
+        "statement_id": "S2",
+        "vendor": "甲",
+        "weight": 4
+      },
+      {
+        "allowed_baskets": [
+          "L"
+        ],
+        "assertions": [
+          {
+            "kind": "UNIT_PAID_UNCHANGED",
+            "unit_id": "a"
+          }
+        ],
+        "new_snapshot": "cmp-yi-new",
+        "old_snapshot": "cmp-yi-old",
+        "op": "register_statement",
+        "statement_id": "S3",
+        "vendor": "乙",
+        "weight": 8
+      },
+      {
+        "allowed_baskets": [
+          "M"
+        ],
+        "assertions": [
+          {
+            "kind": "UNIT_PAID_DECREASES",
+            "unit_id": "b"
+          }
+        ],
+        "new_snapshot": "cmp-bing-new",
+        "old_snapshot": "cmp-bing-old",
+        "op": "register_statement",
+        "statement_id": "S4",
+        "vendor": "丙",
+        "weight": 5
+      },
+      {
+        "basket_id": "L",
+        "new_snapshot": "cmp-yi-new",
+        "old_snapshot": "cmp-yi-old",
+        "op": "compare_basket"
+      },
+      {
+        "op": "find_counterexamples",
+        "statement_id": "S3"
+      },
+      {
+        "booths": 2,
+        "name": "exhibit_plan",
+        "op": "plan_exhibition"
+      },
+      {
+        "basket_id": "L",
+        "op": "collect_booking",
+        "plan_id": "$exhibit_plan.plan_id"
+      },
+      {
+        "op": "withdraw_sample",
+        "unit_id": "a"
+      },
+      {
+        "op": "reopen_statement",
+        "statement_id": "S3"
+      },
+      {
+        "op": "exhibition_status"
       }
     ]
   },
@@ -1402,6 +1927,338 @@
         "before": "case-before"
       }
     },
+    "comparison_catalog": {
+      "counterexamples_S3": {
+        "baskets": [
+          {
+            "assertion_results": [
+              {
+                "assertion": {
+                  "kind": "UNIT_PAID_UNCHANGED",
+                  "unit_id": "a"
+                },
+                "observed": {
+                  "paid_new": 5,
+                  "paid_old": 3
+                },
+                "status": "VIOLATED"
+              }
+            ],
+            "basket_id": "L",
+            "counterexample": true,
+            "failing_assertions": [
+              {
+                "assertion": {
+                  "kind": "UNIT_PAID_UNCHANGED",
+                  "unit_id": "a"
+                },
+                "observed": {
+                  "paid_new": 5,
+                  "paid_old": 3
+                },
+                "status": "VIOLATED"
+              }
+            ],
+            "lendable": true,
+            "new_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:new",
+            "old_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:old",
+            "report": {
+              "basket_id": "L",
+              "coupons": [
+                {
+                  "added": true,
+                  "coupon_id": "C2",
+                  "dropped": false,
+                  "retargeted": false,
+                  "units_new": [
+                    "c"
+                  ],
+                  "units_old": null
+                },
+                {
+                  "added": false,
+                  "coupon_id": "VIPA",
+                  "dropped": false,
+                  "retargeted": false,
+                  "units_new": [
+                    "a"
+                  ],
+                  "units_old": [
+                    "a"
+                  ]
+                }
+              ],
+              "findings": [
+                "ALLOCATION_CHANGED",
+                "SAME_TOTAL_DIFFERENT_ALLOCATION"
+              ],
+              "new_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:new",
+              "new_snapshot": "cmp-yi-new",
+              "old_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:old",
+              "old_snapshot": "cmp-yi-old",
+              "total": {
+                "changed": false,
+                "new": 13,
+                "old": 13
+              },
+              "units": [
+                {
+                  "coupon_new": "VIPA",
+                  "coupon_old": "VIPA",
+                  "discount_new": 5,
+                  "discount_old": 7,
+                  "paid_changed": true,
+                  "paid_new": 5,
+                  "paid_old": 3,
+                  "price": 10,
+                  "sku": "A",
+                  "unit_id": "a"
+                },
+                {
+                  "coupon_new": "C2",
+                  "coupon_old": null,
+                  "discount_new": 2,
+                  "discount_old": 0,
+                  "paid_changed": true,
+                  "paid_new": 8,
+                  "paid_old": 10,
+                  "price": 10,
+                  "sku": "C",
+                  "unit_id": "c"
+                }
+              ]
+            }
+          }
+        ],
+        "counterexample_baskets": [
+          "L"
+        ],
+        "new_snapshot": "cmp-yi-new",
+        "old_snapshot": "cmp-yi-old",
+        "statement_id": "S3",
+        "vendor": "乙",
+        "weight": 8
+      },
+      "report_L": {
+        "basket_id": "L",
+        "coupons": [
+          {
+            "added": true,
+            "coupon_id": "C2",
+            "dropped": false,
+            "retargeted": false,
+            "units_new": [
+              "c"
+            ],
+            "units_old": null
+          },
+          {
+            "added": false,
+            "coupon_id": "VIPA",
+            "dropped": false,
+            "retargeted": false,
+            "units_new": [
+              "a"
+            ],
+            "units_old": [
+              "a"
+            ]
+          }
+        ],
+        "findings": [
+          "ALLOCATION_CHANGED",
+          "SAME_TOTAL_DIFFERENT_ALLOCATION"
+        ],
+        "new_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:new",
+        "new_snapshot": "cmp-yi-new",
+        "old_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:old",
+        "old_snapshot": "cmp-yi-old",
+        "total": {
+          "changed": false,
+          "new": 13,
+          "old": 13
+        },
+        "units": [
+          {
+            "coupon_new": "VIPA",
+            "coupon_old": "VIPA",
+            "discount_new": 5,
+            "discount_old": 7,
+            "paid_changed": true,
+            "paid_new": 5,
+            "paid_old": 3,
+            "price": 10,
+            "sku": "A",
+            "unit_id": "a"
+          },
+          {
+            "coupon_new": "C2",
+            "coupon_old": null,
+            "discount_new": 2,
+            "discount_old": 0,
+            "paid_changed": true,
+            "paid_new": 8,
+            "paid_old": 10,
+            "price": 10,
+            "sku": "C",
+            "unit_id": "c"
+          }
+        ]
+      },
+      "report_N": {
+        "basket_id": "N",
+        "coupons": [
+          {
+            "added": false,
+            "coupon_id": "VIP",
+            "dropped": false,
+            "retargeted": true,
+            "units_new": [
+              "q"
+            ],
+            "units_old": [
+              "p"
+            ]
+          }
+        ],
+        "findings": [
+          "ALLOCATION_CHANGED",
+          "SAME_TOTAL_DIFFERENT_ALLOCATION",
+          "COUPON_RETARGETED"
+        ],
+        "new_quote_request": "cmp:N:cmp-ding-old:cmp-ding-new:new",
+        "new_snapshot": "cmp-ding-new",
+        "old_quote_request": "cmp:N:cmp-ding-old:cmp-ding-new:old",
+        "old_snapshot": "cmp-ding-old",
+        "total": {
+          "changed": false,
+          "new": 14,
+          "old": 14
+        },
+        "units": [
+          {
+            "coupon_new": null,
+            "coupon_old": "VIP",
+            "discount_new": 0,
+            "discount_old": 6,
+            "paid_changed": true,
+            "paid_new": 10,
+            "paid_old": 4,
+            "price": 10,
+            "sku": "P",
+            "unit_id": "p"
+          },
+          {
+            "coupon_new": "VIP",
+            "coupon_old": null,
+            "discount_new": 6,
+            "discount_old": 0,
+            "paid_changed": true,
+            "paid_new": 4,
+            "paid_old": 10,
+            "price": 10,
+            "sku": "Q",
+            "unit_id": "q"
+          }
+        ]
+      },
+      "total_only_check": {
+        "baskets": [
+          {
+            "assertion_results": [
+              {
+                "assertion": {
+                  "kind": "TOTAL_UNCHANGED"
+                },
+                "observed": {
+                  "total_new": 13,
+                  "total_old": 13
+                },
+                "status": "HOLDS"
+              }
+            ],
+            "basket_id": "L",
+            "counterexample": false,
+            "failing_assertions": [],
+            "lendable": true,
+            "new_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:new",
+            "old_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:old",
+            "report": {
+              "basket_id": "L",
+              "coupons": [
+                {
+                  "added": true,
+                  "coupon_id": "C2",
+                  "dropped": false,
+                  "retargeted": false,
+                  "units_new": [
+                    "c"
+                  ],
+                  "units_old": null
+                },
+                {
+                  "added": false,
+                  "coupon_id": "VIPA",
+                  "dropped": false,
+                  "retargeted": false,
+                  "units_new": [
+                    "a"
+                  ],
+                  "units_old": [
+                    "a"
+                  ]
+                }
+              ],
+              "findings": [
+                "ALLOCATION_CHANGED",
+                "SAME_TOTAL_DIFFERENT_ALLOCATION"
+              ],
+              "new_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:new",
+              "new_snapshot": "cmp-yi-new",
+              "old_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:old",
+              "old_snapshot": "cmp-yi-old",
+              "total": {
+                "changed": false,
+                "new": 13,
+                "old": 13
+              },
+              "units": [
+                {
+                  "coupon_new": "VIPA",
+                  "coupon_old": "VIPA",
+                  "discount_new": 5,
+                  "discount_old": 7,
+                  "paid_changed": true,
+                  "paid_new": 5,
+                  "paid_old": 3,
+                  "price": 10,
+                  "sku": "A",
+                  "unit_id": "a"
+                },
+                {
+                  "coupon_new": "C2",
+                  "coupon_old": null,
+                  "discount_new": 2,
+                  "discount_old": 0,
+                  "paid_changed": true,
+                  "paid_new": 8,
+                  "paid_old": 10,
+                  "price": 10,
+                  "sku": "C",
+                  "unit_id": "c"
+                }
+              ]
+            }
+          }
+        ],
+        "counterexample_baskets": [],
+        "new_snapshot": "cmp-yi-new",
+        "old_snapshot": "cmp-yi-old",
+        "statement_id": "S3-total",
+        "vendor": "乙",
+        "weight": 0
+      }
+    },
     "concurrent_returns": {
       "failures": [
         "UNIT_ALREADY_RETURNED"
@@ -1493,6 +2350,822 @@
         "total": 80,
         "total_discount": 120
       }
+    },
+    "exhibition": {
+      "collected_L": {
+        "basket_id": "L",
+        "booth": 1,
+        "collected_at": "2026-11-21T23:36:25.039471+00:00",
+        "exhibited": [
+          {
+            "statement_id": "S3",
+            "weight": 8
+          }
+        ],
+        "plan_id": "plan-3",
+        "replayed": false,
+        "vendor": "乙"
+      },
+      "ledger_refund_a": {
+        "cumulative_refund": 3,
+        "inventory": {
+          "RESTOCK": {
+            "A": 6
+          },
+          "SCRAP": {
+            "A": 1
+          }
+        },
+        "items": [
+          {
+            "grade": "RESTOCK",
+            "original_paid": 3,
+            "refund": 3,
+            "sku": "A",
+            "unit_id": "a"
+          }
+        ],
+        "ok": true,
+        "refund_total": 3,
+        "remaining_refundable": [
+          "c"
+        ],
+        "repeated": false,
+        "request_id": "exhibit-ret-S3-a",
+        "sale_id": "exhibit-S3",
+        "sale_total": 13
+      },
+      "plan_one_booth": {
+        "bookings": [
+          {
+            "basket_id": "K",
+            "booth": 1,
+            "samples": [
+              "a",
+              "b"
+            ],
+            "statements": [
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "UNIT_PAID_UNCHANGED",
+                      "unit_id": "a"
+                    },
+                    "observed": {
+                      "paid_new": 10,
+                      "paid_old": 5
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:K:cmp-jia-old:cmp-jia-new:new",
+                "old_quote_request": "cmp:K:cmp-jia-old:cmp-jia-new:old",
+                "statement_id": "S1",
+                "weight": 6
+              },
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "TOTAL_UNCHANGED"
+                    },
+                    "observed": {
+                      "total_new": 12,
+                      "total_old": 10
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:K:cmp-jia-old:cmp-jia-new:new",
+                "old_quote_request": "cmp:K:cmp-jia-old:cmp-jia-new:old",
+                "statement_id": "S2",
+                "weight": 4
+              }
+            ],
+            "vendor": "甲"
+          }
+        ],
+        "booths": 1,
+        "covered_statement_ids": [
+          "S1",
+          "S2"
+        ],
+        "created_at": "2026-11-21T23:36:24.976955+00:00",
+        "pending_statement_ids": [
+          "S3",
+          "S3-total",
+          "S4"
+        ],
+        "plan_id": "plan-2",
+        "status": "ACTIVE",
+        "supersedes": "plan-1",
+        "total_weight": 10,
+        "warnings": []
+      },
+      "plan_two_booths": {
+        "bookings": [
+          {
+            "basket_id": "L",
+            "booth": 1,
+            "samples": [
+              "a",
+              "c"
+            ],
+            "statements": [
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "UNIT_PAID_UNCHANGED",
+                      "unit_id": "a"
+                    },
+                    "observed": {
+                      "paid_new": 5,
+                      "paid_old": 3
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:new",
+                "old_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:old",
+                "statement_id": "S3",
+                "weight": 8
+              }
+            ],
+            "vendor": "乙"
+          },
+          {
+            "basket_id": "M",
+            "booth": 2,
+            "samples": [
+              "b"
+            ],
+            "statements": [
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "UNIT_PAID_DECREASES",
+                      "unit_id": "b"
+                    },
+                    "observed": {
+                      "paid_new": 7,
+                      "paid_old": 4
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:M:cmp-bing-old:cmp-bing-new:new",
+                "old_quote_request": "cmp:M:cmp-bing-old:cmp-bing-new:old",
+                "statement_id": "S4",
+                "weight": 5
+              }
+            ],
+            "vendor": "丙"
+          }
+        ],
+        "booths": 2,
+        "covered_statement_ids": [
+          "S3",
+          "S4"
+        ],
+        "created_at": "2026-11-21T23:36:24.923962+00:00",
+        "pending_statement_ids": [
+          "S1",
+          "S2",
+          "S3-total"
+        ],
+        "plan_id": "plan-1",
+        "status": "ACTIVE",
+        "supersedes": null,
+        "total_weight": 13,
+        "warnings": []
+      },
+      "plan_two_booths_replanned": {
+        "bookings": [
+          {
+            "basket_id": "L",
+            "booth": 1,
+            "samples": [
+              "a",
+              "c"
+            ],
+            "statements": [
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "UNIT_PAID_UNCHANGED",
+                      "unit_id": "a"
+                    },
+                    "observed": {
+                      "paid_new": 5,
+                      "paid_old": 3
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:new",
+                "old_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:old",
+                "statement_id": "S3",
+                "weight": 8
+              }
+            ],
+            "vendor": "乙"
+          },
+          {
+            "basket_id": "M",
+            "booth": 2,
+            "samples": [
+              "b"
+            ],
+            "statements": [
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "UNIT_PAID_DECREASES",
+                      "unit_id": "b"
+                    },
+                    "observed": {
+                      "paid_new": 7,
+                      "paid_old": 4
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:M:cmp-bing-old:cmp-bing-new:new",
+                "old_quote_request": "cmp:M:cmp-bing-old:cmp-bing-new:old",
+                "statement_id": "S4",
+                "weight": 5
+              }
+            ],
+            "vendor": "丙"
+          }
+        ],
+        "booths": 2,
+        "covered_statement_ids": [
+          "S3",
+          "S4"
+        ],
+        "created_at": "2026-11-21T23:36:25.026081+00:00",
+        "pending_statement_ids": [
+          "S1",
+          "S2",
+          "S3-total"
+        ],
+        "plan_id": "plan-3",
+        "status": "ACTIVE",
+        "supersedes": "plan-2",
+        "total_weight": 13,
+        "warnings": []
+      },
+      "reopened_S3": {
+        "basket_id": "L",
+        "booth": 1,
+        "collected_at": "2026-11-21T23:36:25.039471+00:00",
+        "new_quote": {
+          "allocation": [
+            {
+              "coupon_id": "VIPA",
+              "discount": 5,
+              "paid": 5,
+              "price": 10,
+              "sku": "A",
+              "unit_id": "a"
+            },
+            {
+              "coupon_id": "C2",
+              "discount": 2,
+              "paid": 8,
+              "price": 10,
+              "sku": "C",
+              "unit_id": "c"
+            }
+          ],
+          "assignments": {
+            "C2": [
+              "c"
+            ],
+            "VIPA": [
+              "a"
+            ]
+          },
+          "basket": [
+            {
+              "price": 10,
+              "sku": "A",
+              "unit_id": "a"
+            },
+            {
+              "price": 10,
+              "sku": "C",
+              "unit_id": "c"
+            }
+          ],
+          "coupon_ids": [
+            "C2",
+            "VIPA"
+          ],
+          "coupons": [
+            {
+              "D": 2,
+              "coupon_id": "C2",
+              "requires": {
+                "C": 1
+              }
+            },
+            {
+              "D": 5,
+              "coupon_id": "VIPA",
+              "requires": {
+                "A": 1
+              }
+            }
+          ],
+          "original_total": 20,
+          "request_id": "cmp:L:cmp-yi-old:cmp-yi-new:new",
+          "snapshot_id": "cmp-yi-new",
+          "total": 13,
+          "total_discount": 7
+        },
+        "old_quote": {
+          "allocation": [
+            {
+              "coupon_id": "VIPA",
+              "discount": 7,
+              "paid": 3,
+              "price": 10,
+              "sku": "A",
+              "unit_id": "a"
+            },
+            {
+              "coupon_id": null,
+              "discount": 0,
+              "paid": 10,
+              "price": 10,
+              "sku": "C",
+              "unit_id": "c"
+            }
+          ],
+          "assignments": {
+            "VIPA": [
+              "a"
+            ]
+          },
+          "basket": [
+            {
+              "price": 10,
+              "sku": "A",
+              "unit_id": "a"
+            },
+            {
+              "price": 10,
+              "sku": "C",
+              "unit_id": "c"
+            }
+          ],
+          "coupon_ids": [
+            "VIPA"
+          ],
+          "coupons": [
+            {
+              "D": 7,
+              "coupon_id": "VIPA",
+              "requires": {
+                "A": 1
+              }
+            }
+          ],
+          "original_total": 20,
+          "request_id": "cmp:L:cmp-yi-old:cmp-yi-new:old",
+          "snapshot_id": "cmp-yi-old",
+          "total": 13,
+          "total_discount": 7
+        },
+        "plan_id": "plan-3",
+        "refunds": {
+          "new": {
+            "a": 5,
+            "c": 8
+          },
+          "old": {
+            "a": 3,
+            "c": 10
+          }
+        },
+        "report": {
+          "basket_id": "L",
+          "coupons": [
+            {
+              "added": true,
+              "coupon_id": "C2",
+              "dropped": false,
+              "retargeted": false,
+              "units_new": [
+                "c"
+              ],
+              "units_old": null
+            },
+            {
+              "added": false,
+              "coupon_id": "VIPA",
+              "dropped": false,
+              "retargeted": false,
+              "units_new": [
+                "a"
+              ],
+              "units_old": [
+                "a"
+              ]
+            }
+          ],
+          "findings": [
+            "ALLOCATION_CHANGED",
+            "SAME_TOTAL_DIFFERENT_ALLOCATION"
+          ],
+          "new_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:new",
+          "new_snapshot": "cmp-yi-new",
+          "old_quote_request": "cmp:L:cmp-yi-old:cmp-yi-new:old",
+          "old_snapshot": "cmp-yi-old",
+          "total": {
+            "changed": false,
+            "new": 13,
+            "old": 13
+          },
+          "units": [
+            {
+              "coupon_new": "VIPA",
+              "coupon_old": "VIPA",
+              "discount_new": 5,
+              "discount_old": 7,
+              "paid_changed": true,
+              "paid_new": 5,
+              "paid_old": 3,
+              "price": 10,
+              "sku": "A",
+              "unit_id": "a"
+            },
+            {
+              "coupon_new": "C2",
+              "coupon_old": null,
+              "discount_new": 2,
+              "discount_old": 0,
+              "paid_changed": true,
+              "paid_new": 8,
+              "paid_old": 10,
+              "price": 10,
+              "sku": "C",
+              "unit_id": "c"
+            }
+          ]
+        },
+        "statement_id": "S3",
+        "vendor": "乙",
+        "weight": 8
+      },
+      "withdrawal_a": {
+        "already_withdrawn": false,
+        "dropped_bookings": [
+          {
+            "basket_id": "M",
+            "booth": 2,
+            "samples": [
+              "b"
+            ],
+            "statements": [
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "UNIT_PAID_DECREASES",
+                      "unit_id": "b"
+                    },
+                    "observed": {
+                      "paid_new": 7,
+                      "paid_old": 4
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:M:cmp-bing-old:cmp-bing-new:new",
+                "old_quote_request": "cmp:M:cmp-bing-old:cmp-bing-new:old",
+                "statement_id": "S4",
+                "weight": 5
+              }
+            ],
+            "vendor": "丙"
+          }
+        ],
+        "replanned_plan": {
+          "bookings": [
+            {
+              "basket_id": "M",
+              "booth": 1,
+              "samples": [
+                "b"
+              ],
+              "statements": [
+                {
+                  "failing_assertions": [
+                    {
+                      "assertion": {
+                        "kind": "UNIT_PAID_DECREASES",
+                        "unit_id": "b"
+                      },
+                      "observed": {
+                        "paid_new": 7,
+                        "paid_old": 4
+                      },
+                      "status": "VIOLATED"
+                    }
+                  ],
+                  "new_quote_request": "cmp:M:cmp-bing-old:cmp-bing-new:new",
+                  "old_quote_request": "cmp:M:cmp-bing-old:cmp-bing-new:old",
+                  "statement_id": "S4",
+                  "weight": 5
+                }
+              ],
+              "vendor": "丙"
+            }
+          ],
+          "booths": 2,
+          "covered_statement_ids": [
+            "S4"
+          ],
+          "created_at": "2026-11-21T23:36:25.067362+00:00",
+          "pending_statement_ids": [
+            "S1",
+            "S2",
+            "S3-total"
+          ],
+          "plan_id": "plan-4",
+          "status": "ACTIVE",
+          "supersedes": null,
+          "total_weight": 5,
+          "warnings": []
+        },
+        "superseded_plan_id": "plan-3",
+        "unit_id": "a",
+        "withdrawn": true
+      }
+    },
+    "exhibition_scale": {
+      "baskets": 20,
+      "booths": 3,
+      "database": "/workspace/data/demo.scale.db",
+      "independent_brute_force_weight": 51,
+      "plan": {
+        "bookings": [
+          {
+            "basket_id": "B0",
+            "booth": 1,
+            "samples": [
+              "u0",
+              "u1",
+              "u2",
+              "u3",
+              "u4",
+              "u5",
+              "u6",
+              "u7"
+            ],
+            "statements": [
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "UNIT_PAID_UNCHANGED",
+                      "unit_id": "u0"
+                    },
+                    "observed": {
+                      "paid_new": 75,
+                      "paid_old": 60
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:B0:scale-old:scale-new:new",
+                "old_quote_request": "cmp:B0:scale-old:scale-new:old",
+                "statement_id": "s0",
+                "weight": 9
+              }
+            ],
+            "vendor": "V0"
+          },
+          {
+            "basket_id": "B1",
+            "booth": 2,
+            "samples": [
+              "u10",
+              "u11",
+              "u12",
+              "u13",
+              "u14",
+              "u15",
+              "u8",
+              "u9"
+            ],
+            "statements": [
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "TOTAL_UNCHANGED"
+                    },
+                    "observed": {
+                      "total_new": 600,
+                      "total_old": 480
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:B1:scale-old:scale-new:new",
+                "old_quote_request": "cmp:B1:scale-old:scale-new:old",
+                "statement_id": "s12",
+                "weight": 4
+              },
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "TOTAL_UNCHANGED"
+                    },
+                    "observed": {
+                      "total_new": 600,
+                      "total_old": 480
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:B1:scale-old:scale-new:new",
+                "old_quote_request": "cmp:B1:scale-old:scale-new:old",
+                "statement_id": "s13",
+                "weight": 4
+              },
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "amount": 500,
+                      "kind": "TOTAL_NOT_ABOVE"
+                    },
+                    "observed": {
+                      "bound": 500,
+                      "total_new": 600
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:B1:scale-old:scale-new:new",
+                "old_quote_request": "cmp:B1:scale-old:scale-new:old",
+                "statement_id": "s14",
+                "weight": 5
+              },
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "amount": 70,
+                      "kind": "UNIT_PAID_NOT_ABOVE",
+                      "unit_id": "u11"
+                    },
+                    "observed": {
+                      "bound": 70,
+                      "paid_new": 75,
+                      "paid_old": 60
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:B1:scale-old:scale-new:new",
+                "old_quote_request": "cmp:B1:scale-old:scale-new:old",
+                "statement_id": "s15",
+                "weight": 7
+              }
+            ],
+            "vendor": "V3"
+          },
+          {
+            "basket_id": "B10",
+            "booth": 3,
+            "samples": [
+              "u80",
+              "u81",
+              "u82",
+              "u83",
+              "u84",
+              "u85",
+              "u86",
+              "u87"
+            ],
+            "statements": [
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "TOTAL_UNCHANGED"
+                    },
+                    "observed": {
+                      "total_new": 600,
+                      "total_old": 480
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:B10:scale-old:scale-new:new",
+                "old_quote_request": "cmp:B10:scale-old:scale-new:old",
+                "statement_id": "s10",
+                "weight": 5
+              },
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "TOTAL_UNCHANGED"
+                    },
+                    "observed": {
+                      "total_new": 600,
+                      "total_old": 480
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:B10:scale-old:scale-new:new",
+                "old_quote_request": "cmp:B10:scale-old:scale-new:old",
+                "statement_id": "s11",
+                "weight": 5
+              },
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "TOTAL_UNCHANGED"
+                    },
+                    "observed": {
+                      "total_new": 600,
+                      "total_old": 480
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:B10:scale-old:scale-new:new",
+                "old_quote_request": "cmp:B10:scale-old:scale-new:old",
+                "statement_id": "s8",
+                "weight": 6
+              },
+              {
+                "failing_assertions": [
+                  {
+                    "assertion": {
+                      "kind": "TOTAL_UNCHANGED"
+                    },
+                    "observed": {
+                      "total_new": 600,
+                      "total_old": 480
+                    },
+                    "status": "VIOLATED"
+                  }
+                ],
+                "new_quote_request": "cmp:B10:scale-old:scale-new:new",
+                "old_quote_request": "cmp:B10:scale-old:scale-new:old",
+                "statement_id": "s9",
+                "weight": 6
+              }
+            ],
+            "vendor": "V2"
+          }
+        ],
+        "booths": 3,
+        "covered_statement_ids": [
+          "s0",
+          "s10",
+          "s11",
+          "s12",
+          "s13",
+          "s14",
+          "s15",
+          "s8",
+          "s9"
+        ],
+        "created_at": "2026-11-21T23:36:28.644745+00:00",
+        "pending_statement_ids": [
+          "s1",
+          "s2",
+          "s3",
+          "s4",
+          "s5",
+          "s6",
+          "s7"
+        ],
+        "plan_id": "plan-1",
+        "status": "ACTIVE",
+        "supersedes": null,
+        "total_weight": 51,
+        "warnings": []
+      },
+      "statements": 16
     },
     "greedy_trap": {
       "basket": [
@@ -3185,8 +4858,8 @@
     }
   },
   "summary": {
-    "checks": 19,
+    "checks": 29,
     "failed": 0,
-    "passed": 19
+    "passed": 29
   }
 }

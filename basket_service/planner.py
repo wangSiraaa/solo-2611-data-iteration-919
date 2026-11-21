@@ -21,6 +21,17 @@ Supported ops::
     inventory          skus?
     audit_sales
     audit_inventory
+    register_basket    basket_id, items
+    register_statement statement_id, vendor, weight, old_snapshot, new_snapshot,
+                       allowed_baskets, assertions
+    compare_basket     basket_id, old_snapshot, new_snapshot
+    find_counterexamples statement_id
+    plan_exhibition    booths
+    get_plan           plan_id
+    collect_booking    plan_id, basket_id
+    withdraw_sample    unit_id
+    reopen_statement   statement_id
+    exhibition_status
 
 Any step may set ``"expect_error": <code>`` (string or list) to assert that the
 operation is rejected with that error code; the transcript then records a
@@ -144,6 +155,38 @@ def _execute(service, step: Mapping[str, Any], env: Mapping[str, Any]) -> Any:
         return service.audit_sales()
     if op == "audit_inventory":
         return service.audit_inventory()
+    if op == "register_basket":
+        return service.register_basket(_require(step, "basket_id", op), _require(step, "items", op))
+    if op == "register_statement":
+        return service.register_statement(
+            _require(step, "statement_id", op),
+            vendor=_require(step, "vendor", op),
+            weight=_require(step, "weight", op),
+            old_snapshot=_require(step, "old_snapshot", op),
+            new_snapshot=_require(step, "new_snapshot", op),
+            allowed_baskets=_require(step, "allowed_baskets", op),
+            assertions=_require(step, "assertions", op),
+        )
+    if op == "compare_basket":
+        return service.compare_basket(
+            _require(step, "basket_id", op),
+            _require(step, "old_snapshot", op),
+            _require(step, "new_snapshot", op),
+        )
+    if op == "find_counterexamples":
+        return service.find_counterexamples(_require(step, "statement_id", op))
+    if op == "plan_exhibition":
+        return service.plan_exhibition(_require(step, "booths", op))
+    if op == "get_plan":
+        return service.get_plan(_require(step, "plan_id", op))
+    if op == "collect_booking":
+        return service.collect_booking(_require(step, "plan_id", op), _require(step, "basket_id", op))
+    if op == "withdraw_sample":
+        return service.withdraw_sample(_require(step, "unit_id", op))
+    if op == "reopen_statement":
+        return service.reopen_statement(_require(step, "statement_id", op))
+    if op == "exhibition_status":
+        return service.exhibition_status()
     raise PlanError(f"unknown op {op!r}", step_index=-1, step=step, transcript=[])
 
 

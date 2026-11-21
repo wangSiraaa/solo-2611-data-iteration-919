@@ -20,6 +20,7 @@ from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 from . import optimizer
 from .db import Database, canonical_json, deep_copy, json_loads, utc_now
 from .errors import (
+    INVALID_BASKET,
     INVALID_INPUT,
     QUOTE_CONFLICT,
     REQUEST_CONFLICT,

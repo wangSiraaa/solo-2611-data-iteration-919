@@ -184,5 +184,63 @@ class Database:
                 qty INTEGER NOT NULL,
                 PRIMARY KEY (sku, bucket)
             );
+
+            CREATE TABLE IF NOT EXISTS samples (
+                unit_id TEXT PRIMARY KEY,
+                sku TEXT NOT NULL,
+                price INTEGER NOT NULL,
+                withdrawn INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS display_baskets (
+                basket_id TEXT PRIMARY KEY,
+                items_json TEXT NOT NULL,
+                content_sig TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS change_statements (
+                statement_id TEXT PRIMARY KEY,
+                vendor TEXT NOT NULL,
+                weight INTEGER NOT NULL,
+                old_snapshot TEXT NOT NULL,
+                new_snapshot TEXT NOT NULL,
+                allowed_json TEXT NOT NULL,
+                assertions_json TEXT NOT NULL,
+                content_sig TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS exhibition_plans (
+                plan_id TEXT PRIMARY KEY,
+                seq INTEGER NOT NULL UNIQUE,
+                booths INTEGER NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('ACTIVE', 'SUPERSEDED')),
+                plan_json TEXT NOT NULL,
+                created_at TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS collected_bookings (
+                plan_id TEXT NOT NULL,
+                basket_id TEXT NOT NULL,
+                collected_at TEXT NOT NULL,
+                PRIMARY KEY (plan_id, basket_id),
+                FOREIGN KEY (plan_id) REFERENCES exhibition_plans(plan_id)
+            );
+
+            CREATE TABLE IF NOT EXISTS exhibited_statements (
+                statement_id TEXT PRIMARY KEY,
+                vendor TEXT NOT NULL,
+                weight INTEGER NOT NULL,
+                basket_id TEXT NOT NULL,
+                plan_id TEXT NOT NULL,
+                booth INTEGER NOT NULL,
+                old_quote_request TEXT NOT NULL,
+                new_quote_request TEXT NOT NULL,
+                report_json TEXT NOT NULL,
+                refunds_json TEXT NOT NULL,
+                collected_at TEXT NOT NULL
+            );
             """
         )
